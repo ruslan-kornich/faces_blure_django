@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="container mt-5">
+    <div class="alert alert-success" role="alert">
+      <h4 class="alert-heading">Все фотографии заблюрированы!</h4>
+      <p>Все изображения в этой галерее были успешно заблюрированы.</p>
+      <hr>
+      <p class="mb-0">Теперь вы можете <a href="{% url 'gallery_list' %}">перейти куда-то еще</a> или выполнить другие действия.</p>
+    </div>
+  </div>
+{% endblock %}

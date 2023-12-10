@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static%}
+{% block title %}Главная страница{% endblock %}
+
+{% block content %}
+    <h2>Загрузите фотографию для редактирования</h2>
+    <input type="file" id="imageInput" accept="image/*">
+    <div id="canvasContainer">
+        <canvas id="canvas"></canvas>
+    </div>
+    <button id="editButton" onclick="sendImage()">Редактировать и отправить</button>
+    <div class="instructions">
+        <p>Выберите изображение, затем используйте мышь, чтобы выбрать область для блюра.</p>
+    </div>
+
+
+<script>
+    let canvas = document.getElementById('canvas');
+    let ctx = canvas.getContext('2d');
+    let rect = {}, drag = false;
+    let image = new Image();
+    let scaleFactor;
+
+    function initCanvas() {
+        const containerWidth = document.getElementById('canvasContainer').offsetWidth;
+        const containerHeight = document.getElementById('canvasContainer').offsetHeight;
+        scaleFactor = Math.min(containerWidth / image.width, containerHeight / image.height);
+        canvas.width = image.width * scaleFactor;
+        canvas.height = image.height * scaleFactor;
+        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+    }
+
+    canvas.addEventListener('mousedown', function(e) {
+        const canvasRect = canvas.getBoundingClientRect();
+        rect.startX = (e.clientX - canvasRect.left) / scaleFactor;
+        rect.startY = (e.clientY - canvasRect.top) / scaleFactor;
+        drag = true;
+    });
+
+    canvas.addEventListener('mouseup', function() {
+        drag = false;
+    });
+
+    canvas.addEventListener('mousemove', function(e) {
+        if (drag) {
+            const canvasRect = canvas.getBoundingClientRect();
+            rect.w = (e.clientX - canvasRect.left) / scaleFactor - rect.startX;
+            rect.h = (e.clientY - canvasRect.top) / scaleFactor - rect.startY;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = 'red';
+            ctx.strokeRect(rect.startX * scaleFactor, rect.startY * scaleFactor, rect.w * scaleFactor, rect.h * scaleFactor);
+        }
+    });
+
+    document.getElementById('imageInput').addEventListener('change', function(e) {
+        if (e.target.files.length === 0) {
+            return;
+        }
+        let fileReader = new FileReader();
+        fileReader.onload = function(event) {
+            image.onload = initCanvas;
+            image.src = event.target.result;
+        };
+        fileReader.readAsDataURL(e.target.files[0]);
+    });
+
+    function sendImage() {
+        if (!image.src || rect.w === undefined || rect.h === undefined) {
+            alert('Пожалуйста, загрузите изображение и выберите область для блюра.');
+            return;
+        }
+
+        const formData = new FormData();
+    formData.append('image', document.getElementById('imageInput').files[0]);
+
+    // Конвертируем координаты в JSON строку
+    formData.append('coords', JSON.stringify({
+        x: rect.startX,
+        y: rect.startY,
+        width: rect.w,
+        height: rect.h
+    }));
+
+        fetch('/blur-image/', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.blob())
+        .then(blob => {
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'blurred-image.jpeg'; // Изменено на .jpeg
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+})
+
+        .catch(error => {
+            console.error('Ошибка:', error);
+        });
+    }
+</script>
+
+
+{% endblock %}

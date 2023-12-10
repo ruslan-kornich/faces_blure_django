@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block styles %}
+<style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+    }
+    .canvas-wrapper {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #canvas {
+      max-width: 95vw;
+      max-height: 95vh;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+    .btn-apply-blur {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+    }
+    /* Добавьте CSS для всплывающего сообщения */
+    .blur-success-message {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #28a745;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 5px;
+        animation: fadeOut 5s; /* Установите продолжительность анимации в 5 секунд */
+    }
+
+    /* Определение анимации */
+    @keyframes fadeOut {
+        0% { opacity: 1; }
+        100% { opacity: 0; }
+    }
+    .btn-apply-blur {
+    margin-top: 60px; /* Задайте желаемый отступ сверху */
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="canvas-wrapper">
+    {% if previous_image_id %}
+    <a href="{% url 'original_image_detail' previous_image_id %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+    {% endif %}
+    <canvas id="canvas"></canvas>
+    {% if next_image_id %}
+    <a href="{% url 'original_image_detail' next_image_id %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-right"></i>
+    </a>
+    {% endif %}
+
+    {% if not image.blurred_image %} {# Проверяем, не заблюрировано ли изображение #}
+    <button data-original-image-id="{{ image.id }}" class="btn btn-primary btn-lg btn-apply-blur mb-4" onclick="applyBlur()">
+        <i class="fas fa-brush"></i> Применить блюр
+    </button>
+    {% endif %}
+</div>
+
+
+
+<div class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="position: fixed; bottom: 10px; right: 10px;">
+    <div class="toast-body bg-success text-white">
+        Фотография успешно заблюрирована.
+    </div>
+</div>
+
+<script>
+    function showSuccessMessage() {
+        const toastElement = document.querySelector('.toast');
+        const toast = new bootstrap.Toast(toastElement);
+        toast.show();
+    }
+
+    let canvas = document.getElementById('canvas');
+    let ctx = canvas.getContext('2d');
+    let rect = {}, drag = false;
+    let image = new Image();
+    let displayedImageWidth, displayedImageHeight;
+
+    // Функция для инициализации холста и привязки событий мыши
+    function initCanvas() {
+      const containerWidth = window.innerWidth;
+      const containerHeight = window.innerHeight;
+      let scale = Math.min(containerWidth / image.width, containerHeight / image.height);
+      canvas.width = image.width * scale;
+      canvas.height = image.height * scale;
+      displayedImageWidth = image.width * scale;
+      displayedImageHeight = image.height * scale;
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+    }
+
+    // Загрузка изображения и инициализация холста
+    image.onload = function() {
+      initCanvas();
+      window.addEventListener('resize', initCanvas);
+    };
+    image.src = "{{ image.original_photo.url }}"; // URL изображения для редактирования
+
+    // Функции для обработки событий мыши
+    canvas.addEventListener('mousedown', function(e) {
+      rect.startX = e.offsetX;
+      rect.startY = e.offsetY;
+      drag = true;
+    });
+
+    canvas.addEventListener('mouseup', function() { drag = false; });
+
+    canvas.addEventListener('mousemove', function(e) {
+      if (drag) {
+        rect.w = e.offsetX - rect.startX;
+        rect.h = e.offsetY - rect.startY;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = 'red';
+        ctx.strokeRect(rect.startX, rect.startY, rect.w, rect.h);
+      }
+    });
+
+    // Функция для применения блюра к выбранной области
+    function applyBlur() {
+      const originalImageId = document.querySelector('.btn-apply-blur').getAttribute('data-original-image-id');
+      if (!image.src || !rect.w || !rect.h) {
+        alert('Пожалуйста, выберите область для блюра.');
+        return;
+      }
+
+      canvas.toBlob(function(blob) {
+        const formData = new FormData();
+        formData.append('image', blob);
+        formData.append('coords', JSON.stringify({
+          x: rect.startX,
+          y: rect.startY,
+          width: rect.w,
+          height: rect.h
+        }));
+        formData.append('original_image_id', originalImageId);
+        formData.append('display_width', displayedImageWidth); // Ширина отображаемого изображения
+        formData.append('display_height', displayedImageHeight); // Высота отображаемого изображения
+
+        fetch('/blur-image/', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Сетевая ошибка.');
+          }
+          return response.json();
+        })
+        .then(data => {
+  console.log('Изображение заблюрировано и сохранено:', data);
+            showSuccessMessage()
+})
+        .catch(error => {
+          console.error('Ошибка:', error);
+        });
+      }, 'image/jpeg');
+    }
+</script>
+{% endblock %}
