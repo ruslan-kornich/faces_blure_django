@@ -1,50 +1,7 @@
 {% extends 'base.html' %}
-
+{% load static %}
 {% block styles %}
-<style>
-    html, body {
-      height: 100%;
-      margin: 0;
-      overflow: hidden;
-    }
-    .canvas-wrapper {
-      width: 100vw;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    #canvas {
-      max-width: 95vw;
-      max-height: 95vh;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    }
-    .btn-apply-blur {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-    }
-    .blur-success-message {
-        position: fixed;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: #28a745;
-        color: #fff;
-        padding: 10px 20px;
-        border-radius: 5px;
-        animation: fadeOut 5s;
-    }
-
-    @keyframes fadeOut {
-        0% { opacity: 1; }
-        100% { opacity: 0; }
-    }
-    .btn-apply-blur {
-    margin-top: 60px;
-}
-
-</style>
+<link rel="stylesheet" href="{% static 'css/img_style.css' %}">
 {% endblock %}
 
 {% block content %}

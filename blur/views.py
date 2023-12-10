@@ -1,21 +1,21 @@
-from django.views.decorators.csrf import csrf_exempt
 import json
-from django.http import JsonResponse
-from PIL import ImageFilter
-from PIL import Image as PILImage
-
-from django.shortcuts import get_object_or_404
-from PIL import ImageOps
-import io
-from django.core.files import File
 import zipfile
 import os
-from django.shortcuts import render, redirect
-from django.conf import settings
-from .forms import ZipUploadForm
-from .models import Gallery, OriginalImage, BlurredImage
+import io
+from PIL import ImageOps
+from PIL import Image as PILImage
+from PIL import ImageFilter
+from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Count, Q
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.shortcuts import render, redirect
+from django.conf import settings
+from django.shortcuts import get_object_or_404
+from django.core.files import File
+
+from .forms import ZipUploadForm
+from .models import Gallery, OriginalImage, BlurredImage
 
 
 def scale_coords(coords, original_size, displayed_size):
@@ -37,12 +37,10 @@ def blur_image(request):
     if request.method == "POST":
         try:
             print("Received POST request")
-
             blur_coords = json.loads(request.POST.get("coords"))
             original_image_id = request.POST.get("original_image_id")
             display_width = float(request.POST.get("display_width"))
             display_height = float(request.POST.get("display_height"))
-
             print(f"Coords: {blur_coords}")
             print(f"Original Image ID: {original_image_id}")
             if original_image_id:
