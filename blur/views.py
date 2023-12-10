@@ -5,7 +5,7 @@ from PIL import ImageFilter
 from PIL import Image as PILImage
 
 from django.shortcuts import get_object_or_404
-
+from PIL import ImageOps
 import io
 from django.core.files import File
 import zipfile
@@ -55,6 +55,7 @@ def blur_image(request):
 
                 with PILImage.open(original_image_path) as image:
                     print(f"Original image size: {image.size}")
+                    image = ImageOps.exif_transpose(image)
 
                     # Масштабирование координат
                     scaled_coords = scale_coords(

@@ -12,7 +12,7 @@
                     <p class="card-text">Total photos: {{ gallery.total_images }}</p>
                     <p class="card-text">Unblurred: {{ gallery.not_blurred_images }}</p>
                     <p class="card-text">Created by user: {{ gallery.user.username }}</p>
-                    <p class="card-text">Date of Creation: {{ gallery.created_at|date:"d M Y" }}</p>
+                    <p class="card-text">Date of Creation: {{ gallery.created_at|date:"d M Y H:i" }}</p>
 
                 </div>
             </div>
