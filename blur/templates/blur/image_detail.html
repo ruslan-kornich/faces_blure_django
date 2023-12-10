@@ -24,7 +24,6 @@
       top: 10px;
       right: 10px;
     }
-    /* Добавьте CSS для всплывающего сообщения */
     .blur-success-message {
         position: fixed;
         bottom: 20px;
@@ -34,16 +33,15 @@
         color: #fff;
         padding: 10px 20px;
         border-radius: 5px;
-        animation: fadeOut 5s; /* Установите продолжительность анимации в 5 секунд */
+        animation: fadeOut 5s;
     }
 
-    /* Определение анимации */
     @keyframes fadeOut {
         0% { opacity: 1; }
         100% { opacity: 0; }
     }
     .btn-apply-blur {
-    margin-top: 60px; /* Задайте желаемый отступ сверху */
+    margin-top: 60px;
 }
 
 </style>
@@ -63,18 +61,19 @@
     </a>
     {% endif %}
 
-    {% if not image.blurred_image %} {# Проверяем, не заблюрировано ли изображение #}
-    <button data-original-image-id="{{ image.id }}" class="btn btn-primary btn-lg btn-apply-blur mb-4" onclick="applyBlur()">
-        <i class="fas fa-brush"></i> Применить блюр
+    {% if not image.blurred_image %} {# Check if the image is blurred #}
+    <button data-original-image-id="{{ image.id }}" class="btn btn-primary btn-lg btn-apply-blur mb-4"
+            onclick="applyBlur()">
+        <i class="fas fa-brush"></i> Apply blur
     </button>
     {% endif %}
 </div>
 
 
-
-<div class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="position: fixed; bottom: 10px; right: 10px;">
+<div class="toast" role="alert" aria-live="assertive" aria-atomic="true"
+     style="position: fixed; bottom: 10px; right: 10px;">
     <div class="toast-body bg-success text-white">
-        Фотография успешно заблюрирована.
+        The photo has been successfully blurred.
     </div>
 </div>
 
@@ -91,7 +90,7 @@
     let image = new Image();
     let displayedImageWidth, displayedImageHeight;
 
-    // Функция для инициализации холста и привязки событий мыши
+    // Function for initializing the canvas and binding mouse events
     function initCanvas() {
       const containerWidth = window.innerWidth;
       const containerHeight = window.innerHeight;
@@ -103,14 +102,14 @@
       ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
     }
 
-    // Загрузка изображения и инициализация холста
+    // Loading the image and initializing the canvas
     image.onload = function() {
       initCanvas();
       window.addEventListener('resize', initCanvas);
     };
-    image.src = "{{ image.original_photo.url }}"; // URL изображения для редактирования
+    image.src = "{{ image.original_photo.url }}"; // URL of the image to edit
 
-    // Функции для обработки событий мыши
+    // Functions for processing mouse events
     canvas.addEventListener('mousedown', function(e) {
       rect.startX = e.offsetX;
       rect.startY = e.offsetY;
@@ -130,11 +129,11 @@
       }
     });
 
-    // Функция для применения блюра к выбранной области
+    // Function for applying blur to the selected area
     function applyBlur() {
       const originalImageId = document.querySelector('.btn-apply-blur').getAttribute('data-original-image-id');
       if (!image.src || !rect.w || !rect.h) {
-        alert('Пожалуйста, выберите область для блюра.');
+        alert('Please select an area for the bluer.');
         return;
       }
 
@@ -148,8 +147,8 @@
           height: rect.h
         }));
         formData.append('original_image_id', originalImageId);
-        formData.append('display_width', displayedImageWidth); // Ширина отображаемого изображения
-        formData.append('display_height', displayedImageHeight); // Высота отображаемого изображения
+        formData.append('display_width', displayedImageWidth); // Width of the displayed image
+        formData.append('display_height', displayedImageHeight); // Height of the displayed image
 
         fetch('/blur-image/', {
           method: 'POST',
@@ -157,16 +156,16 @@
         })
         .then(response => {
           if (!response.ok) {
-            throw new Error('Сетевая ошибка.');
+            throw new Error('Network error.');
           }
           return response.json();
         })
         .then(data => {
-  console.log('Изображение заблюрировано и сохранено:', data);
+  console.log('The image has been blurred and preserved:', data);
             showSuccessMessage()
 })
         .catch(error => {
-          console.error('Ошибка:', error);
+          console.error('Error:', error);
         });
       }, 'image/jpeg');
     }

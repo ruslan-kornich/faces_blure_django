@@ -2,24 +2,24 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2 class="mb-4">Мои галереи</h2>
+    <h2 class="mb-4">My galleries</h2>
     <div class="row">
         {% for gallery in galleries %}
         <div class="col-md-4 mb-4">
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title"><a href="{% url 'gallery_detail' gallery.id %}">{{ gallery.name }}</a></h5>
-                    <p class="card-text">Всего фотографий: {{ gallery.total_images }}</p>
-                    <p class="card-text">Не заблюренных: {{ gallery.not_blurred_images }}</p>
-                    <p class="card-text">Создана пользователем: {{ gallery.user.username }}</p>
-                    <p class="card-text">Дата создания: {{ gallery.created_at|date:"d M Y" }}</p>
+                    <p class="card-text">Total photos: {{ gallery.total_images }}</p>
+                    <p class="card-text">Unblurred: {{ gallery.not_blurred_images }}</p>
+                    <p class="card-text">Created by user: {{ gallery.user.username }}</p>
+                    <p class="card-text">Date of Creation: {{ gallery.created_at|date:"d M Y" }}</p>
 
                 </div>
             </div>
         </div>
         {% empty %}
         <div class="col">
-            <p>Галерей пока нет.</p>
+            <p>No galleries yet.</p>
         </div>
         {% endfor %}
     </div>

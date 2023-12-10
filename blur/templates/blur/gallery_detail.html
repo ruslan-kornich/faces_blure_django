@@ -7,13 +7,11 @@
         {% for original_image in gallery.original_images.all %}
         <div class="col-md-4 mb-3">
             <div class="card h-100">
-                <!-- Используйте правильное имя URL и параметр для детализации изображения -->
                 <a href="{% url 'original_image_detail' original_image.id %}">
                     <img src="{{ original_image.original_photo.url }}" class="card-img-top" alt="Original Image" style="object-fit: cover; height: 200px;">
                 </a>
                 <div class="card-body d-flex flex-column">
                     <h5 class="card-title">Original Image {{ forloop.counter }}</h5>
-                    <!-- При необходимости добавьте описание -->
                     <a href="{% url 'original_image_detail' original_image.id %}" class="btn btn-primary mt-auto">View Details</a>
                 </div>
                 {% if original_image.blurred_image %}
