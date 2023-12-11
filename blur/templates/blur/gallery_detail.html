@@ -3,8 +3,15 @@
 {% block content %}
 <div class="container mt-4">
     <h2 class="text-center mb-4">{{ gallery.name }}</h2>
+
+    <!-- Filter for non-blurred images -->
+    <div class="mb-3 text-center">
+        <a href="?show_unblurred=true" class="btn btn-info">Show unblurred</a>
+        <a href="{{ request.path }}" class="btn btn-secondary">Show all</a>
+    </div>
+
     <div class="row">
-        {% for original_image in gallery.original_images.all %}
+        {% for original_image in original_images %}
         <div class="col-md-4 mb-3">
             <div class="card h-100">
                 <a href="{% url 'original_image_detail' original_image.id %}">
@@ -22,7 +29,7 @@
             </div>
         </div>
         {% empty %}
-        <p>No images in this gallery.</p>
+        <p class="text-center">There are no images in this gallery.</p>
         {% endfor %}
     </div>
 </div>

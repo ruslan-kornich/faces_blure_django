@@ -145,10 +145,15 @@ def gallery_list(request):
 @login_required
 def gallery_detail(request, gallery_id):
     gallery = get_object_or_404(Gallery, id=gallery_id)
+
+    # Filter to show only unblurred images
+    show_unblurred = request.GET.get("show_unblurred", "false") == "true"
     images = gallery.original_images.all()
-    return render(
-        request, "blur/gallery_detail.html", {"gallery": gallery, "images": images}
-    )
+    if show_unblurred:
+        images = images.filter(is_blurred=False)
+
+    context = {"gallery": gallery, "original_images": images}
+    return render(request, "blur/gallery_detail.html", context)
 
 
 @login_required

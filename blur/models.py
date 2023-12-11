@@ -7,7 +7,12 @@ from accounts.models import CustomUser
 
 def get_blurred_image_path(instance, filename):
     gallery_name_slug = slugify(instance.original_image.gallery.name)
-    return os.path.join('blurred_images', gallery_name_slug, filename)
+    return os.path.join("blurred_images", gallery_name_slug, filename)
+
+
+def get_original_image_path(instance, filename):
+    gallery_name_slug = slugify(instance.gallery.name)
+    return os.path.join("original_images", gallery_name_slug, filename)
 
 
 class Gallery(models.Model):
@@ -25,7 +30,7 @@ class OriginalImage(models.Model):
     gallery = models.ForeignKey(
         Gallery, related_name="original_images", on_delete=models.CASCADE
     )
-    original_photo = models.ImageField(upload_to="original_images/")
+    original_photo = models.ImageField(upload_to=get_original_image_path)
     is_blurred = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
