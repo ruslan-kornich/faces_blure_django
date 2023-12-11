@@ -1,6 +1,13 @@
-from django.db import models
+import os
 
+from django.db import models
+from django.utils.text import slugify
 from accounts.models import CustomUser
+
+
+def get_blurred_image_path(instance, filename):
+    gallery_name_slug = slugify(instance.original_image.gallery.name)
+    return os.path.join('blurred_images', gallery_name_slug, filename)
 
 
 class Gallery(models.Model):
@@ -30,7 +37,7 @@ class BlurredImage(models.Model):
     original_image = models.OneToOneField(
         OriginalImage, on_delete=models.CASCADE, related_name="blurred_image"
     )
-    blured_photo = models.ImageField(upload_to="blurred_images/")
+    blured_photo = models.ImageField(upload_to=get_blurred_image_path)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
