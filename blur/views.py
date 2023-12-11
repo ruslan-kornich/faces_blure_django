@@ -16,19 +16,9 @@ from django.core.files import File
 
 from .forms import ZipUploadForm
 from .models import Gallery, OriginalImage, BlurredImage
+from .utils import scale_coords
 
 
-def scale_coords(coords, original_size, displayed_size):
-    scale_x = original_size[0] / displayed_size[0]
-    scale_y = original_size[1] / displayed_size[1]
-
-    scaled_coords = {
-        "x": int(coords["x"] * scale_x),
-        "y": int(coords["y"] * scale_y),
-        "width": int(coords["width"] * scale_x),
-        "height": int(coords["height"] * scale_y),
-    }
-    return scaled_coords
 
 
 @login_required
@@ -55,7 +45,7 @@ def blur_image(request):
                     print(f"Original image size: {image.size}")
                     image = ImageOps.exif_transpose(image)
 
-                    # Масштабирование координат
+                    # Scaling coordinates
                     scaled_coords = scale_coords(
                         blur_coords, image.size, (display_width, display_height)
                     )
