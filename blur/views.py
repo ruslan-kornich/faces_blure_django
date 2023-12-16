@@ -8,7 +8,7 @@ from PIL import ImageFilter
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Count, Q
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.shortcuts import get_object_or_404
@@ -17,8 +17,6 @@ from django.core.files import File
 from .forms import ZipUploadForm
 from .models import Gallery, OriginalImage, BlurredImage
 from .utils import scale_coords
-
-
 
 
 @login_required
@@ -175,3 +173,36 @@ def image_detail(request, image_id):
             "show_modal": show_modal,
         },
     )
+
+
+@login_required
+def delete_gallery(request, gallery_id):
+    if request.method == "POST":
+        gallery = get_object_or_404(Gallery, id=gallery_id, user=request.user)
+        gallery.delete()
+        return JsonResponse({"success": True})
+
+    return JsonResponse({"success": False})
+
+
+@login_required
+def download_blurred_images(request, gallery_id):
+    gallery = get_object_or_404(Gallery, id=gallery_id)
+
+    # Create archive
+    response = HttpResponse(content_type="application/zip")
+    zip_file = zipfile.ZipFile(response, "w")
+
+    for image in gallery.original_images.filter(is_blurred=True):
+        blurred_image = image.blurred_image.blured_photo
+        file_path = os.path.join(settings.MEDIA_ROOT, blurred_image.name)
+
+        # Remove the prefix 'blured-' from the file name
+        original_file_name = os.path.basename(file_path).replace("blurred-", "")
+
+        zip_file.write(file_path, original_file_name)
+
+    zip_file.close()
+    response["Content-Disposition"] = f"attachment; filename=Blured-{gallery.name}.zip"
+
+    return response
