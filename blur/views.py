@@ -35,7 +35,16 @@ def blur_image(request):
                 original_image_instance = OriginalImage.objects.get(
                     id=original_image_id
                 )
+
+                # create path for save relative path
                 original_image_path = original_image_instance.original_photo.path
+                folder_path, file_name = os.path.split(original_image_path)
+                blurred_images_folder = os.path.join(
+                    settings.MEDIA_ROOT, "blurred_images", original_image_instance.gallery.name, os.path.relpath(folder_path, settings.MEDIA_ROOT)
+                )
+                os.makedirs(blurred_images_folder, exist_ok=True)
+                new_image_name = file_name
+                blurred_image_path = os.path.join(blurred_images_folder, new_image_name)
 
                 print(f"Original image path: {original_image_path}")
 
@@ -64,16 +73,15 @@ def blur_image(request):
 
                     img_byte_arr = io.BytesIO()
                     image.save(img_byte_arr, format="JPEG", quality=95)
+                    image.save(blurred_image_path, format="JPEG", quality=95)
                     img_byte_arr.seek(0)
 
-                new_image_name = f"blurred-{os.path.basename(original_image_instance.original_photo.name)}"
+                new_image_name = os.path.basename(original_image_instance.original_photo.name)
                 print(f"New image name: {new_image_name}")
 
                 blurred_image = BlurredImage(
                     original_image=original_image_instance,
-                    blured_photo=File(
-                        io.BytesIO(img_byte_arr.getvalue()), name=new_image_name
-                    ),
+                    blured_photo=blurred_image_path[len(settings.MEDIA_ROOT):],
                 )
                 blurred_image.save()
                 original_image_instance.is_blurred = True
@@ -181,7 +189,6 @@ def delete_gallery(request, gallery_id):
         gallery = get_object_or_404(Gallery, id=gallery_id, user=request.user)
         gallery.delete()
         return JsonResponse({"success": True})
-
     return JsonResponse({"success": False})
 
 
@@ -189,20 +196,18 @@ def delete_gallery(request, gallery_id):
 def download_blurred_images(request, gallery_id):
     gallery = get_object_or_404(Gallery, id=gallery_id)
 
-    # Create archive
     response = HttpResponse(content_type="application/zip")
-    zip_file = zipfile.ZipFile(response, "w")
+    zip_file = zipfile.ZipFile(response, "w", zipfile.ZIP_DEFLATED)
 
     for image in gallery.original_images.filter(is_blurred=True):
         blurred_image = image.blurred_image.blured_photo
-        file_path = os.path.join(settings.MEDIA_ROOT, blurred_image.name)
+        file_path = settings.MEDIA_ROOT + blurred_image.name
+        
+        # Here now create path for saving relative path
+        relative_path = os.path.relpath(file_path, settings.MEDIA_ROOT).replace('blurred_images\\', '')
 
-        # Remove the prefix 'blured-' from the file name
-        original_file_name = os.path.basename(file_path).replace("blurred-", "")
-
-        zip_file.write(file_path, original_file_name)
+        zip_file.write(file_path, arcname=relative_path)
 
     zip_file.close()
-    response["Content-Disposition"] = f"attachment; filename=Blured-{gallery.name}.zip"
-
+    response["Content-Disposition"] = f"attachment; filename=Blurred-{gallery.name}.zip"
     return response
