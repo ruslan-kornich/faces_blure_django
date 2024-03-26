@@ -7,12 +7,12 @@ from accounts.models import CustomUser
 
 def get_blurred_image_path(instance, filename):
     gallery_name_slug = slugify(instance.original_image.gallery.name)
-    return os.path.join("blurred_images", gallery_name_slug, filename)
+    return os.path.join("photos", "blurred_images", gallery_name_slug, filename)
 
 
 def get_original_image_path(instance, filename):
     gallery_name_slug = slugify(instance.gallery.name)
-    return os.path.join("original_images", gallery_name_slug, filename)
+    return os.path.join("photos", "original_images", gallery_name_slug, filename)
 
 
 class Gallery(models.Model):

@@ -111,9 +111,9 @@ def upload_zip(request):
                 for file_name in zip_ref.namelist():
                     if file_name.lower().endswith((".png", ".jpg", ".jpeg")):
                         zip_ref.extract(file_name, settings.MEDIA_ROOT)
-                        image_file_path = os.path.join(settings.MEDIA_ROOT, file_name)
+                        relative_file_path = os.path.relpath(os.path.join(settings.MEDIA_ROOT, file_name), settings.MEDIA_ROOT)
                         OriginalImage.objects.create(
-                            gallery=gallery, original_photo=image_file_path
+                            gallery=gallery, original_photo=relative_file_path
                         )
 
             return redirect("gallery_list")
@@ -121,6 +121,7 @@ def upload_zip(request):
         form = ZipUploadForm()
 
     return render(request, "blur/upload_zip.html", {"form": form})
+
 
 
 @login_required
