@@ -40,7 +40,10 @@ def blur_image(request):
                 original_image_path = original_image_instance.original_photo.path
                 folder_path, file_name = os.path.split(original_image_path)
                 blurred_images_folder = os.path.join(
-                    settings.MEDIA_ROOT, "blurred_images", original_image_instance.gallery.name, os.path.relpath(folder_path, settings.MEDIA_ROOT)
+                    settings.MEDIA_ROOT,
+                    "blurred_images",
+                    original_image_instance.gallery.name,
+                    os.path.relpath(folder_path, settings.MEDIA_ROOT),
                 )
                 os.makedirs(blurred_images_folder, exist_ok=True)
                 new_image_name = file_name
@@ -76,12 +79,14 @@ def blur_image(request):
                     image.save(blurred_image_path, format="JPEG", quality=95)
                     img_byte_arr.seek(0)
 
-                new_image_name = os.path.basename(original_image_instance.original_photo.name)
+                new_image_name = os.path.basename(
+                    original_image_instance.original_photo.name
+                )
                 print(f"New image name: {new_image_name}")
 
                 blurred_image = BlurredImage(
                     original_image=original_image_instance,
-                    blured_photo=blurred_image_path[len(settings.MEDIA_ROOT):],
+                    blured_photo=blurred_image_path[len(settings.MEDIA_ROOT) :],
                 )
                 blurred_image.save()
                 original_image_instance.is_blurred = True
@@ -111,7 +116,10 @@ def upload_zip(request):
                 for file_name in zip_ref.namelist():
                     if file_name.lower().endswith((".png", ".jpg", ".jpeg")):
                         zip_ref.extract(file_name, settings.MEDIA_ROOT)
-                        relative_file_path = os.path.relpath(os.path.join(settings.MEDIA_ROOT, file_name), settings.MEDIA_ROOT)
+                        relative_file_path = os.path.relpath(
+                            os.path.join(settings.MEDIA_ROOT, file_name),
+                            settings.MEDIA_ROOT,
+                        )
                         OriginalImage.objects.create(
                             gallery=gallery, original_photo=relative_file_path
                         )
@@ -121,7 +129,6 @@ def upload_zip(request):
         form = ZipUploadForm()
 
     return render(request, "blur/upload_zip.html", {"form": form})
-
 
 
 @login_required
@@ -203,9 +210,11 @@ def download_blurred_images(request, gallery_id):
     for image in gallery.original_images.filter(is_blurred=True):
         blurred_image = image.blurred_image.blured_photo
         file_path = settings.MEDIA_ROOT + blurred_image.name
-        
+
         # Here now create path for saving relative path
-        relative_path = os.path.relpath(file_path, settings.MEDIA_ROOT).replace('blurred_images\\', '')
+        relative_path = os.path.relpath(file_path, settings.MEDIA_ROOT).replace(
+            "blurred_images\\", ""
+        )
 
         zip_file.write(file_path, arcname=relative_path)
 
